@@ -31,7 +31,7 @@ func main() {
 	}
 	fmt.Println(result)
 
-	fullInstructions := regexp.MustCompile(`(?:mul\((?:([0-9]{1,3}),([0-9]{1,3})))\)|do\(\)|don't\(\)`).FindAllStringSubmatch(string(dat), -1)
+	fullInstructions := regexp.MustCompile(`mul\((?:([0-9]{1,3}),([0-9]{1,3}))\)|do\(\)|don't\(\)`).FindAllStringSubmatch(string(dat), -1)
 	var fullResult int
 	enabled := true
 	for _, instruction := range fullInstructions {
