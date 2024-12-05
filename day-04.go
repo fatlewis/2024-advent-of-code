@@ -34,48 +34,22 @@ func reverse(s string) string {
     return string(runes)
 }
 
-func isWordPresentLR(word string, grid []string, x int, y int) bool {
-	if (!canFitHorizontalLR(word, len(grid[y]), x)) {
-		return false
+func boolToInt(boolean bool) int {
+	if (boolean) {
+		return 1
 	}
-	for i := 0; i < len(word); i += 1 {
-		if (word[i] != grid[y][x + i]) {
-			return false
-		}
-	}
-	return true
+	return 0
 }
 
-func isWordPresentUD(word string, grid []string, x int, y int) bool {
-	if (!canFitVerticalUD(word, len(grid), y)) {
-		return false
-	}
-	for i := 0; i < len(word); i += 1 {
-		if (word[i] != grid[y + i][x]) {
-			return false
-		}
-	}
-	return true
-}
-
-func isWordPresentDiagonalUp(word string, grid []string, x int, y int) bool {
-	if (y < (len(word) - 1) || !canFitHorizontalLR(word, len(grid[y]), x)) {
-		return false
-	}
-	for i := 0; i < len(word); i += 1 {
-		if (word[i] != grid[y - i][x + i]) {
-			return false
-		}
-	}
-	return true
-}
-
-func isWordPresentDiagonalDown(word string, grid []string, x int, y int) bool {
-	if (!canFitVerticalUD(word, len(grid), y) || !canFitHorizontalLR(word, len(grid[y]), x)) {
+func isWordPresent(word string, grid []string, location [2]int, vector [2]int) bool {
+	fitsHorizontal := vector[0] <= 0 || canFitHorizontalLR(word, len(grid[location[1]]), location[0])
+	fitsVerticalDown := vector[1] <= 0 || canFitVerticalUD(word, len(grid), location[1])
+	fitsVerticalUp := vector[1] >= 0 || location[1] >= (len(word) -1)
+	if(!fitsHorizontal || !fitsVerticalDown || !fitsVerticalUp) {
 		return false
 	}
 	for i:= 0; i < len(word); i += 1 {
-		if (word[i] != grid[y + i][x + i]) {
+		if (word[i] != grid[location[1] + (i * vector[1])][location[0] + (i * vector[0])]) {
 			return false
 		}
 	}
@@ -91,34 +65,18 @@ func main() {
 	word := "XMAS"
 	reverseWord := reverse(word)
 	occurrences := 0
+	vectors := [4][2]int{[2]int{1,0}, [2]int{0,1}, [2]int{1,-1}, [2]int{1,1}}
 	for yIndex, line := range grid {
 		for xIndex, character := range line {
+			location := [2]int{xIndex,yIndex}
 			if (character == rune(word[0])) {
-				if (isWordPresentLR(word, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentUD(word, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentDiagonalUp(word, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentDiagonalDown(word, grid, xIndex, yIndex)) {
-					occurrences += 1
+				for _, vector := range vectors {
+					occurrences += boolToInt(isWordPresent(word, grid, location, vector))
 				}
 			}
 			if (character == rune(reverseWord[0])) {
-				if (isWordPresentLR(reverseWord, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentUD(reverseWord, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentDiagonalUp(reverseWord, grid, xIndex, yIndex)) {
-					occurrences += 1
-				}
-				if (isWordPresentDiagonalDown(reverseWord, grid, xIndex, yIndex)) {
-					occurrences += 1
+				for _, vector := range vectors {
+					occurrences += boolToInt(isWordPresent(reverseWord, grid, location, vector))
 				}
 			}
 		}
@@ -127,22 +85,23 @@ func main() {
 
 	// Finding X-MASs
 	word = "MAS"
-	reverseWord = reverse(word)
 	occurrences = 0
 	for yIndex, line := range grid {
 		for xIndex, character := range line {
+			location := [2]int{xIndex,yIndex}
+			var testWord string
 			if (character == rune(word[0])) {
-				if (isWordPresentDiagonalDown(word, grid, xIndex, yIndex)) {
-					if (isWordPresentDiagonalUp(word, grid, xIndex, yIndex + 2) || isWordPresentDiagonalUp(reverseWord, grid, xIndex, yIndex + 2)) {
-						occurrences += 1
-					}
-				}
+				testWord = word
 			}
-			if (character == rune(reverseWord[0])) {
-				if (isWordPresentDiagonalDown(reverseWord, grid, xIndex, yIndex)) {
-					if (isWordPresentDiagonalUp(word, grid, xIndex, yIndex + 2) || isWordPresentDiagonalUp(reverseWord, grid, xIndex, yIndex + 2)) {
-						occurrences += 1
-					}
+			if (character == rune(reverse(word)[0])) {
+				testWord = reverse(word)
+			}
+			if (testWord != "") {
+				if (isWordPresent(testWord, grid, location, [2]int{1,1})) {
+					newLocation := [2]int{location[0],location[1]+2}
+					wordCrosses := isWordPresent(testWord, grid, newLocation, [2]int{1,-1})
+					reverseWordCrosses := isWordPresent(reverse(testWord), grid, newLocation, [2]int{1,-1})
+					occurrences += boolToInt(wordCrosses || reverseWordCrosses)
 				}
 			}
 		}
