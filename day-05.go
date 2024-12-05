@@ -34,16 +34,6 @@ func unpack(input string) (map[int][]int, [][]string) {
 	return rules, manuals
 }
 
-func isEarlier(manual map[string]int, earlyPage string, laterPages []int) bool {
-	for _, laterPage := range laterPages {
-		_, inManual := manual[strconv.Itoa(laterPage)]
-		if (inManual && manual[strconv.Itoa(laterPage)] <= manual[earlyPage]) {
-			return false
-		}
-	}
-	return true
-}
-
 func earliestViolation(manual map[string]int, earlyPage string, laterPages []int) int {
 	earliestViolation := -1
 	for _, laterPage := range laterPages {
@@ -84,7 +74,7 @@ func main() {
 		manualMap := toMap(manual)
 		isValid := true
 		for _, page := range manual {
-			if (!isEarlier(manualMap, page, rules[strToInt(page)])) {
+			if (earliestViolation(manualMap, page, rules[strToInt(page)]) >= 0) {
 				isValid = false
 				break
 			}
