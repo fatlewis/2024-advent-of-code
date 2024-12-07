@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"time"
 )
 
 func strToInt(str string) int {
@@ -64,14 +65,17 @@ func main() {
 	dat, _ := os.ReadFile("./assets/day07-input.txt")
 	testValues, numbers := unpack(string(dat))
 
+	startTime := time.Now()
 	solveableSum := 0
 	for index, testValue := range testValues {
 		if(canSolve(testValue, numbers[index][0], numbers[index][1:])) {
 			solveableSum += testValue
 		}
 	}
+	fmt.Println(time.Since(startTime))
 	fmt.Println(solveableSum)
 
+	startTime = time.Now()
 	solveableSum = 0
 	isPartTwo = true
 	for index, testValue := range testValues {
@@ -79,6 +83,7 @@ func main() {
 			solveableSum += testValue
 		}
 	}
+	fmt.Println(time.Since(startTime))
 	fmt.Println(solveableSum)
 }
 
