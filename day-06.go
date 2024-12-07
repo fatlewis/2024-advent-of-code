@@ -69,7 +69,7 @@ func rotate(direction int) int {
 }
 
 func toIndex(position [2]int) string {
-	return strings.Join([]string{strconv.Itoa(position[0]),",",strconv.Itoa(position[1])}, "")
+	return strings.Join([]string{strconv.Itoa(position[1]),",",strconv.Itoa(position[0])}, "")
 }
 
 func nextObstacleLocation(labMap [][]rune, startPos [2]int, direction int) (loopFound bool, obstacleFound bool, obstacleLocation [2]int) {
@@ -83,17 +83,19 @@ func nextObstacleLocation(labMap [][]rune, startPos [2]int, direction int) (loop
 		isLoop := slices.Contains(visitedPositions[positionIndex], direction)
 
 		if (isLoop) {
-			// Log position as visited
-			//visitedPositions[positionIndex] = append(visitedPositions[positionIndex], direction)
 			// Record loop
-			return true, labMap[newY][newX] == rune('#'), newPos
+//fmt.Println(newPos, string(labMap[newY][newX]), visitedPositions[positionIndex], direction)
+			return true, false, newPos
 		}
 		if (labMap[newY][newX] == rune('#')) {
+//fmt.Println("Found '#' rune:", newPos, string(labMap[newPos[1]][newPos[0]]))
 			return false, true, newPos
 		}
 		// once loop recorded, else here
-		visitedPositions[positionIndex] = append(visitedPositions[positionIndex], direction)
+		visitedPositions[positionIndex] = append(slices.Clone(visitedPositions[positionIndex]), direction)
 	}
+//fmt.Println("Found exit?", newPos, string(labMap[newPos[1]][newPos[0]]))
+//fmt.Println(len(loopCreationSpots))
 	return false, false, newPos
 }
 
@@ -124,20 +126,17 @@ func printMap(labMap [][]rune) {
 func main() {
 	dat, _ := os.ReadFile("./assets/day06-input.txt")
 	guard, labMap := unpack(string(dat))
-//	printMap(labMap)
 
 	obstacleFound := true
 	var obstacleLocation [2]int
 	guardLocation := guard
 	direction := UP
-	
 	for obstacleFound {
 		preMoveVisitedPositions := maps.Clone(visitedPositions)
 
 		_, obstacleFound, obstacleLocation = nextObstacleLocation(labMap, guardLocation, direction)
 
 		postMoveVisitedPositions := maps.Clone(visitedPositions)
-		visitedPositions = maps.Clone(preMoveVisitedPositions)
 
 		// Part 2 logic
 		// for each spot in between the guard and the new location
@@ -145,16 +144,28 @@ func main() {
 		startIndex := valueByAxisOfDirection(guardLocation, direction)
 
 		for i:= 1; i <= difference(maxValue, startIndex); i += 1 {
+			// Reset visited positions
+			visitedPositions = maps.Clone(preMoveVisitedPositions)
+
 			// place obstacle in spot
 			tempLabMap := cloneLabMap(labMap)
 			fakeObstacle := advance(guardLocation, direction, i)
+			if (tempLabMap[fakeObstacle[1]][fakeObstacle[0]] != rune('.')) {
+				continue
+			}
 			tempLabMap[fakeObstacle[1]][fakeObstacle[0]] = rune('#')
+
+			// if this obstacle has already been tested, skip
+			_, keyExists := loopCreationSpots[toIndex(fakeObstacle)]
+			if (keyExists) {
+				continue
+			}
 
 			// run simulation & record loop if one is created
 			tempObstacleFound := true
 			var tempObstacleLocation [2]int
 			tempGuardLocation := guardLocation
-			tempDirection := direction
+			tempDirection := direction 
 			
 			isLoop := false
 			for tempObstacleFound && !isLoop {
@@ -164,12 +175,13 @@ func main() {
 
 				if (isLoop) {
 					loopCreationSpots[toIndex(fakeObstacle)] = true
-					break
 				}
 			}
 
-			// Reset visited positions
-			visitedPositions = maps.Clone(preMoveVisitedPositions)
+			// add to spots map as non-loop spot
+			if (!isLoop) {
+				loopCreationSpots[toIndex(fakeObstacle)] = false
+			}
 		}
 		visitedPositions = maps.Clone(postMoveVisitedPositions)
 		// End of Part 2 logic */
@@ -178,6 +190,12 @@ func main() {
 		direction = rotate(direction)
 	}
 	fmt.Println(len(visitedPositions))
-	fmt.Println(len(loopCreationSpots))
+	loopSpotsSum := 0
+	for creationSpot := range maps.Keys(loopCreationSpots) {
+		if (loopCreationSpots[creationSpot]) {
+			loopSpotsSum += 1
+		}
+	}
+	fmt.Println(loopSpotsSum)
 }
 
