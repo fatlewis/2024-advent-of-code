@@ -57,7 +57,6 @@ func main() {
 		stoneInt := toInt(stoneString)
 		stoneMap[stoneInt] += 1
 	}
-	fmt.Println(stoneMap)
 
 	start := time.Now()
 	for i := 0; i < 25; i += 1 {
@@ -65,6 +64,12 @@ func main() {
 	}
 	fmt.Println(sumValues(stoneMap))
 	fmt.Println(time.Since(start))
+
+	clear(stoneMap)
+	for _, stoneString := range stoneStrings {
+		stoneInt := toInt(stoneString)
+		stoneMap[stoneInt] += 1
+	}
 
 	start = time.Now()
 	for i := 0; i < 75; i += 1 {
