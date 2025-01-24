@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"container/heap"
+	"slices"
 	priorityQueue "advent-of-code-2024/utils/pq"
 )
 
@@ -82,6 +83,20 @@ func (m Maze) Remove(location *Coords) {
 	delete(row, location.X)
 }
 
+func (m Maze) Print(size int) {
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			if m.Contains(&Coords{X: j, Y: i}) {
+				fmt.Print(".")
+			} else {
+				fmt.Print("#")
+			}
+		}
+		fmt.Print("\n")
+	}
+	fmt.Print("\n\n")
+}
+
 type Path struct {
 	score int
 	position *Coords
@@ -97,12 +112,12 @@ func (m Maze) ShortestPath(start, end *Coords) []*Coords {
         for pq.Len() > 0 {
                 route := heap.Pop(&pq).(*priorityQueue.PQItem).GetValue().(*Path)
 		p := route.position
-		key := p.ToString()
 
                 // If we're outside the maze or in a wall, skip
                 if !m.Contains(p) { continue }
 
                 // If we've visited the current location before, skip
+		key := p.ToString()
 		if visited[key] { continue }
 
                 // Add current node to visited
@@ -113,10 +128,10 @@ func (m Maze) ShortestPath(start, end *Coords) []*Coords {
 
                 // Generate next routes and add to pq
 		newRoutes := []*Path{
-			&Path{position: p.Translate(North), nodes: append(route.nodes, p.Translate(North))},
-			&Path{position: p.Translate(East), nodes: append(route.nodes, p.Translate(East))},
-			&Path{position: p.Translate(South), nodes: append(route.nodes, p.Translate(South))},
-			&Path{position: p.Translate(West), nodes: append(route.nodes, p.Translate(West))},
+			&Path{position: p.Translate(North), nodes: append(slices.Clone(route.nodes), p.Translate(North))},
+			&Path{position: p.Translate(East), nodes: append(slices.Clone(route.nodes), p.Translate(East))},
+			&Path{position: p.Translate(South), nodes: append(slices.Clone(route.nodes), p.Translate(South))},
+			&Path{position: p.Translate(West), nodes: append(slices.Clone(route.nodes), p.Translate(West))},
 		}
 		for _, newRoute := range newRoutes {
 			heap.Push(&pq, priorityQueue.NewPQItem(len(newRoute.nodes) * -1, newRoute))
